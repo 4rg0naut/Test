@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprendre la récursivité</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; max-width: 800px; margin: auto; }
+        h1, h2, h3 { color: #333; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeeba; padding: 10px; margin-bottom: 20px; }
+        .explanation { margin-top: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .highlight { background-color: #ffff99; }
+        button { margin: 10px 5px 10px 0; padding: 5px 10px; }
+        pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .code-highlight { font-weight: bold; color: #d73a49; }
+        .math { font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>Comprendre la récursivité</h1>
+
+    <div class="warning">
+        <strong>/!\ Point de vigilance</strong>
+        <p>La notion de récursivité est complexe à appréhender au départ car, un peu comme la prédiction à plusieurs coups aux échecs, elle peut demander un effort intellectuel important pour "faire tourner" l'algorithme.</p>
+    </div>
+
+    <div class="explanation">
+        <h2>La fonction factorielle en mathématiques</h2>
+        <p>La factorielle d'un nombre entier positif n, notée n!, est le produit de tous les entiers positifs inférieurs ou égaux à n.</p>
+        <p class="math">n! = n × (n-1) × (n-2) × ... × 3 × 2 × 1</p>
+        <p>Par définition, 0! = 1 et 1! = 1.</p>
+        <p>Cette définition se prête naturellement à une implémentation récursive en programmation.</p>
+    </div>
+
+    <div class="explanation">
+        <h2>Implémentation récursive de la factorielle en Python</h2>
+        <pre><code id="factorialCode">
+def factorielle(n):
+    if n == 0 or n == 1:
+        return 1
+    else:
+        return n * factorielle(n-1)
+
+resultat = factorielle(4)
+        </code></pre>
+    </div>
+
+    <div class="explanation">
+        <h2>Simulation de l'exécution pour factorielle(4)</h2>
+        <button onclick="previousStep()" id="prevButton" disabled>Étape précédente</button>
+        <button onclick="nextStep()" id="nextButton">Étape suivante</button>
+    </div>
+
+    <table id="recursionTable">
+        <tr>
+            <th>Étape</th>
+            <th>Action</th>
+            <th>Pile d'appels</th>
+            <th>Valeur de retour</th>
+        </tr>
+    </table>
+
+    <script>
+        const steps = [
+            { action: "Appel initial, n=4", stack: "factorielle(4)", returnValue: "?", codeHighlight: "resultat = factorielle(4)" },
+            { action: "Appel récursif, n=4-1=3", stack: "factorielle(3)\nfactorielle(4)", returnValue: "?", codeHighlight: "return n * factorielle(n-1)" },
+            { action: "Appel récursif, n=3-1=2", stack: "factorielle(2)\nfactorielle(3)\nfactorielle(4)", returnValue: "?", codeHighlight: "return n * factorielle(n-1)" },
+            { action: "Appel récursif, n=2-1=1", stack: "factorielle(1)\nfactorielle(2)\nfactorielle(3)\nfactorielle(4)", returnValue: "?", codeHighlight: "return n * factorielle(n-1)" },
+            { action: "Cas de base atteint", stack: "factorielle(1)\nfactorielle(2)\nfactorielle(3)\nfactorielle(4)", returnValue: "1", codeHighlight: "if n == 0 or n == 1:\n        return 1" },
+            { action: "Retour et calcul", stack: "factorielle(2)\nfactorielle(3)\nfactorielle(4)", returnValue: "2 * 1 = 2", codeHighlight: "return n * factorielle(n-1)" },
+            { action: "Retour et calcul", stack: "factorielle(3)\nfactorielle(4)", returnValue: "3 * 2 = 6", codeHighlight: "return n * factorielle(n-1)" },
+            { action: "Retour et calcul", stack: "factorielle(4)", returnValue: "4 * 6 = 24", codeHighlight: "return n * factorielle(n-1)" },
+            { action: "Résultat final", stack: "", returnValue: "24", codeHighlight: "resultat = factorielle(4)" }
+        ];
+
+        let currentStep = 0;
+
+        function updateButtons() {
+            document.getElementById("prevButton").disabled = currentStep === 0;
+            document.getElementById("nextButton").disabled = currentStep === steps.length;
+        }
+
+        function updateCodeHighlight(highlight) {
+            const codeElement = document.getElementById("factorialCode");
+            const code = codeElement.textContent;
+            const highlightedCode = code.replace(/(<span class="code-highlight">.*?<\/span>)/g, "")
+                                        .replace(highlight, `<span class="code-highlight">${highlight}</span>`);
+            codeElement.innerHTML = highlightedCode;
+        }
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                const table = document.getElementById("recursionTable");
+                const row = table.insertRow(-1);
+                row.insertCell(0).textContent = currentStep + 1;
+                row.insertCell(1).textContent = steps[currentStep].action;
+                row.insertCell(2).innerHTML = steps[currentStep].stack.replace(/\n/g, "<br>");
+                row.insertCell(3).textContent = steps[currentStep].returnValue;
+                
+                row.classList.add("highlight");
+                setTimeout(() => row.classList.remove("highlight"), 1000);
+
+                updateCodeHighlight(steps[currentStep].codeHighlight);
+
+                currentStep++;
+                updateButtons();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                const table = document.getElementById("recursionTable");
+                table.deleteRow(-1);
+                updateCodeHighlight(steps[currentStep].codeHighlight);
+                updateButtons();
+            }
+        }
+    </script>
+
+    <div class="explanation">
+        <h2>Pourquoi la récursivité est adaptée à certains problèmes mathématiques</h2>
+        <p>La récursivité est particulièrement adaptée aux problèmes mathématiques qui peuvent être définis en termes d'eux-mêmes, comme :</p>
+        <ul>
+            <li>La factorielle</li>
+            <li>La suite de Fibonacci</li>
+            <li>Les suites arithmétiques et géométriques</li>
+            <li>Le calcul du plus grand commun diviseur (PGCD)</li>
+        </ul>
+        <p>Ces problèmes ont une structure naturellement récursive, ce qui rend leur implémentation intuitive et élégante en utilisant la récursivité.</p>
+    </div>
+
+    <div class="explanation">
+        <h2>Complexité de l'algorithme récursif de factorielle</h2>
+        <p>La complexité temporelle de l'algorithme factorielle de n dans sa version récursive est O(n), car il y a n appels récursifs.</p>
+        <p>La complexité spatiale est également O(n) en raison de la pile d'appels qui peut atteindre une profondeur de n.</p>
+        <h3>Avantages :</h3>
+        <ul>
+            <li>Pour des cas assez simples implémentation simple et intuitive</li>
+            <li>Code lisible et proche de la définition mathématique</li>
+        </ul>
+        <h3>Inconvénients :</h3>
+        <ul>
+            <li>L'utilisation pour des cas plus avancés peut sembler particulièrement complexe</li>
+            <li>Utilisation importante de la mémoire pour de grandes valeurs de n</li>
+            <li>Risque de dépassement de pile pour de très grandes valeurs</li>
+            <li>Moins efficace qu'une implémentation itérative pour de grandes valeurs</li>
+        </ul>
+    </div>
+
+    <div class="explanation">
+        <h2>Conclusion</h2>
+        <p>La récursivité est un outil puissant en programmation, particulièrement adapté à certains problèmes mathématiques. Cependant, il est important de comprendre ses limites et d'envisager des approches alternatives (comme l'itération) lorsque la performance est critique ou pour de très grandes valeurs d'entrée.</p>
+    </div>
+</body>
+</html>
